@@ -1,0 +1,2 @@
+cheerio x 159 ops/sec ±2.74% (75 runs sampled)
+cparser x 2.20 ops/sec ±8.64% (10 runs sampled)

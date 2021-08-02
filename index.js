@@ -1,46 +1,37 @@
 const Benchmark = require("benchmark");
 const cheerio = require("cheerio");
 const { cparser } = require("codsen-parser");
+const fs = require("fs");
 
-const content = require("fs").readFileSync(`${__dirname}/test.html`, "utf8");
+const content = fs.readFileSync(`${__dirname}/test.html`, "utf8");
 
-runPerf("cheerio", () => {
+const cheerioResults = runPerf("cheerio", () => {
   cheerio.load(content);
 });
+console.log(cheerioResults);
 
-runPerf("cparser", () => {
+const cparserResults = runPerf("cparser", () => {
   cparser(content);
 });
+console.log(cparserResults);
+
+fs.writeFileSync(
+  `${__dirname}/results.txt`,
+  `${cheerioResults}\n${cparserResults}`
+);
 
 function runPerf(name, cb) {
-  const BENCH = true;
-
-  // add tests
-  // ---------------------------------------------------------------------------
-
   const suite = new Benchmark.Suite();
 
-  return (
-    suite
-      .add("t1", () => {
-        cb();
-      })
-      .on("complete", function () {
-        //                                  |
-        //                                  |
-        //                                  |
-        //                                  |
-        //                               \  |  /
-        //                                \ | /
-        //                                 \|/
-        //                                  V
-        const optsPerSec = this[0].hz;
+  let result;
+  suite
+    .add(name, () => {
+      cb();
+    })
+    .on("cycle", function (event) {
+      result = String(event.target);
+    })
+    .run();
 
-        if (BENCH) {
-          console.log(`${name},${optsPerSec}`);
-        }
-      })
-      // run async
-      .run({ async: true })
-  );
+  return result;
 }
